@@ -1,0 +1,106 @@
+import json
+import argparse, os, sys
+import numpy as np
+import pandas as pd
+import librosa.display
+import matplotlib.pyplot as plt
+import scipy.interpolate
+from libfmp.b.b_plot import plot_signal, plot_chromagram
+from libfmp.c3.c3s2_dtw_plot import plot_matrix_with_points
+
+from synctoolbox.dtw.mrmsdtw import sync_via_mrmsdtw
+from synctoolbox.dtw.utils import compute_optimal_chroma_shift, shift_chroma_vectors, make_path_strictly_monotonic, evaluate_synchronized_positions
+from synctoolbox.feature.chroma import pitch_to_chroma, quantize_chroma, quantized_chroma_to_CENS
+from synctoolbox.feature.dlnco import pitch_onset_features_to_DLNCO
+from synctoolbox.feature.pitch import audio_to_pitch_features
+from synctoolbox.feature.pitch_onset import audio_to_pitch_onset_features
+from synctoolbox.feature.utils import estimate_tuning
+
+# synctool defaults
+Fs = 22050
+feature_rate = 50
+step_weights = np.array([1.5, 1.5, 2.0])
+threshold_rec = 10 ** 6
+
+def bulk_align(files, ref_ix):
+    audios = [librosa.load(f, sr=Fs)[0] for f in files]
+    #features_df = pd.DataFrame({"audio_ix":{}, "chroma":{}, "onsets":{}})
+    features = []
+    # generate reference annotations
+    ref_decasecond_annotations = np.arange(0, librosa.get_duration(audios[ref_ix]), 0.1)
+    import libfmp.c2
+
+    tuning_offset1 = estimate_tuning(audios[0], Fs)
+    tuning_offset2 = estimate_tuning(audios[1], Fs)
+
+    chroma1, onsets1 = get_features_from_audio(audios[0], tuning_offset1, Fs, feature_rate)
+    chroma2, onsets2 = get_features_from_audio(audios[1], tuning_offset2, Fs, feature_rate)
+    wp = sync_via_mrmsdtw(f_chroma1=chroma1, f_onset1=onsets1, f_chroma2=chroma2, f_onset2=onsets2, input_feature_rate=feature_rate, step_weights=step_weights, threshold_rec=threshold_rec, verbose=False, dtw_implementation="librosa")
+
+    for ix, audio in enumerate(audios):
+        #generate tuning offset df
+        tuning_offset = estimate_tuning(audio, Fs)
+#        tuning_offsets_df.insert(ix, "audio_" + str(ix), [tuning_offset])
+        # calculate chroma and onset features
+        f_chroma_quantized, f_DLNCO = get_features_from_audio(audio, tuning_offset, Fs, feature_rate)
+        features.append({'chroma':f_chroma_quantized, 'onsets':f_DLNCO})
+        #'features_df.loc[ix] = ["audio_"+str(ix), f_chroma_quantized_audio, f_DLNCO_audio]
+    # generate all warp paths to reference
+#    ref_chroma = features_df.iloc[ref_ix]['chroma']
+#    ref_onsets = features_df.iloc[ref_ix]['onsets']
+    ref_chroma = features[ref_ix]['chroma']
+    ref_onsets = features[ref_ix]['onsets']
+    annotations_map = []
+    for ix, _ in enumerate(features):
+        chroma = features[ix]['chroma']
+        onsets = features[ix]['onsets']
+        wp = sync_via_mrmsdtw(f_chroma1=ref_chroma, f_onset1=ref_onsets, f_chroma2=chroma, f_onset2=onsets, input_feature_rate=feature_rate, step_weights=step_weights, threshold_rec=threshold_rec, verbose=False, dtw_implementation="librosa")
+        # make wp strictly monotonic (better for transferring annotations according to synctoolbox)
+        wp = make_path_strictly_monotonic(wp)
+        # transfer reference annotations
+        transferred_anno = scipy.interpolate.interp1d(wp[0] / feature_rate, wp[1] / feature_rate, kind='linear')(ref_decasecond_annotations)
+        print("TRANSFERRED: ")
+        print(transferred_anno)
+        annotations_map.append(transferred_anno)
+    return annotations_map
+
+
+def get_features_from_audio(audio, tuning_offset, Fs, feature_rate, visualize=False):
+    f_pitch = audio_to_pitch_features(f_audio=audio, Fs=Fs, tuning_offset=tuning_offset, feature_rate=feature_rate, verbose=visualize)
+    f_chroma = pitch_to_chroma(f_pitch=f_pitch)
+    f_chroma_quantized = quantize_chroma(f_chroma=f_chroma)
+#    if visualize:
+#        plot_chromagram(f_chroma_quantized, title='Quantized chroma features - Audio', Fs=feature_rate, figsize=(9,3))
+
+    f_pitch_onset = audio_to_pitch_onset_features(f_audio=audio, Fs=Fs, tuning_offset=tuning_offset, verbose=visualize)
+    f_DLNCO = pitch_onset_features_to_DLNCO(f_peaks=f_pitch_onset, feature_rate=feature_rate, feature_sequence_length=f_chroma_quantized.shape[1], visualize=visualize)
+    return f_chroma_quantized, f_DLNCO
+
+
+
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--audioDirectory', help="Directory containing recordings to be matched", required=True)
+    parser.add_argument('-r', '--referenceAudio', help="Filename of reference recording in directory. If omited, I'll use the first file I find", required=False)
+    parser.add_argument('-o', '--output', help="Filename for output file", required=True)
+    args = parser.parse_args()
+
+    audio_files = [f for f in os.listdir(args.audioDirectory) if f.endswith('.wav') or f.endswith('.mp3')]
+    ref_index = 0
+    if len(audio_files) < 2:
+        sys.exit("Specified audio directory must contain at least two audio (.wav or .mp3) files")
+    if args.referenceAudio:  
+        if args.referenceAudio not in audio_files:
+            sys.exit("Cannot find specified reference audio in specified audio directory")
+        else: 
+            ref_index = audio_files.index(args.referenceAudio)
+    files = [os.path.join(args.audioDirectory, f) for f in audio_files]
+    print(files)
+    annotations_map = bulk_align(files, ref_index)
+    np.savetxt(args.output, annotations_map, delimiter=",", fmt="%.4f")
+
+
+
+
