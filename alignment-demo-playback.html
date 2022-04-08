@@ -1,4 +1,4 @@
-<html>
+<!DOCTYPE html>
   <head>
     <title>SSV Align</title>
     <script src="./wavesurfer.js"></script>
@@ -8,9 +8,9 @@
     <div id="waveform1"></div>
     <div id="waveform2"></div>
     <input type="file" id="fileinput1" />
-    <input type="file" id="fileinput2" />
-    <div id="playpause">Play/Pause</div>
-    <div id="swap">Swap</div>
+    <input type="file" id="fileinput2" /><br/>
+    <button id="playpause">Play/Pause</button><br/>
+    <button id="swap">Swap</button>
     <script>
       var wavesurfer1 = WaveSurfer.create({
               container: "#waveform1",
@@ -81,6 +81,7 @@
               wavesurfer2.seekTo(markers[1][ix] / wavesurfer2.getDuration());
             })
       document.getElementById("playpause").addEventListener('click', function(e){
+        currentPlayer.setBackgroundColor("yellow");
         if(currentPlayer.isPlaying()) 
           currentPlayer.pause();
         else 
@@ -89,6 +90,7 @@
       document.getElementById("swap").addEventListener('click', function(e){
         let wasPlaying = currentPlayer.isPlaying();
         currentPlayer.pause();
+        currentPlayer.setBackgroundColor("white");
         let currentTime = currentPlayer.getCurrentTime();
         // find the nearest marker to current playback time
         let lower = markers[currentMarkerIx].filter(t => t <= currentTime);
@@ -104,6 +106,7 @@
         if(wasPlaying) { 
           currentPlayer.play();
         }
+        currentPlayer.setBackgroundColor("yellow");
       })
 
     </script>
