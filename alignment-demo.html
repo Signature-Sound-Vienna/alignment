@@ -72,7 +72,10 @@
       markers2.forEach(m => wavesurfer2.addMarker({time:m, color:"green"}));
 
       wavesurfer1.on('marker-click', () => { 
-              wavesurfer2.seekTo(wavesurfer1.getCurrentTime());
+              // find index of current wavesurfer1 time in markers1
+              let ix = markers1.indexOf(wavesurfer1.getCurrentTime());
+              // seek wavesurfer2 to the number of seconds at the same ix in markers2
+              wavesurfer2.seekTo(markers2[ix] / wavesurfer2.getDuration());
             })
 
     </script>
