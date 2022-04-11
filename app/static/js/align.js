@@ -1,31 +1,81 @@
 const wsContainers = ["waveform1", "waveform2"];
-const wavesurfers = [];
+let wavesurfers = [];
+let audios = [];
 let alignmentGrids = {};
 let ref;
+let currentAudioIx= 0;
 
 function onClickRenditionName(e) { 
+  document.getElementById(`wavesurfer${currentAudioIx}`).classList.remove("active");
   console.log("Clicked: ", e.target.innerText);
   console.log("ref is: ", ref);
-  console.log("Loading: " + root + "/" + e.target.innerText);
-  wavesurfers[1].load(root + "/wav/" + e.target.innerText);
+  console.log("Pausing current: ", currentAudioIx);
+  console.log("Current duration: ", wavesurfers[currentAudioIx].getDuration());
+  const wasPlaying = wavesurfers[currentAudioIx].isPlaying();
+  wavesurfers[currentAudioIx].pause();
+  const currentTime = wavesurfers[currentAudioIx].getCurrentTime();
+  let currentGrid = alignmentGrids[audios[currentAudioIx]]
+  // find the nearest marker to current playback time
+  const lower = currentGrid.filter(t => t <= currentTime);
+  // ix for closest marker below current time
+  let closestAlignmentIx = lower.length;
+  // if next marker (closest above current time) is closer, switch to it
+  if(closestAlignmentIx < currentGrid.length && 
+     currentTime - currentGrid[closestAlignmentIx] > 
+      currentGrid[closestAlignmentIx+1])  
+          closestAlignmentIx += 1;
+  // swap to new audio and alignment grid
+  currentAudioIx = audios.indexOf(e.target.innerText);
+  console.log("new audio ix: ", currentAudioIx);
+  currentGrid = alignmentGrids[audios[currentAudioIx]]
+  console.log("new audio grid: ", alignmentGrids[audios[currentAudioIx]]);
+  console.log("new duration: ", wavesurfers[currentAudioIx].getDuration());
+  document.getElementById(`wavesurfer${currentAudioIx}`).classList.add("active");
+  // seek to new (corresponding) position 
+  let correspondingPosition = currentGrid[closestAlignmentIx];
+  let newPosition = correspondingPosition / wavesurfers[currentAudioIx].getDuration();
+  console.log("new position: ", correspondingPosition, wavesurfers[currentAudioIx].getDuration(), newPosition);
+  wavesurfers[currentAudioIx].seekTo(newPosition);
+//  if(wasPlaying)
+    wavesurfers[currentAudioIx].play();
 }
 
 function setGrids(grids) { 
+  const ws = document.getElementById("waveforms");
+  wavesurfers = [];
+  audios = [];
+  ws.innerHTML = "";
   console.log("setting grids: ", grids);
   alignmentGrids = grids;
+  audios = Object.keys(alignmentGrids).sort();
   document.getElementById("audios").innerHTML = "<ul>" + 
-    Object.keys(alignmentGrids)
-    .sort()
+    audios
     .map(k => "<li class='renditionName'>"+k+"</li>")
     .join("") + "</ul>";
   Array.from(document.getElementsByClassName("renditionName"))
-    .forEach(r =>  
-      r.addEventListener("click", onClickRenditionName)
-    )
+    .forEach((r, ix) => {
+      r.addEventListener("click", onClickRenditionName);
+      ws.innerHTML += `<div id="wavesurfer${ix}" class="waveform"></div>`;
+      let wavesurfer = WaveSurfer.create({
+        container: `#wavesurfer${ix}`,
+        waveColor: "violet",
+        progressColor: "purple",
+        backend: "MediaElement"
+       // plugins: [ WaveSurfer.markers.create({}) ]
+      });
+      wavesurfer.load(root + "wav/" + audios[ix]);
+      wavesurfer.on('ready', () => {
+        wavesurfer.background = "green";
+      })
+      wavesurfers.push(wavesurfer);
+
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   // initialise wavesurfer containers
+  //
+ /*
   wsContainers.forEach( (ws, ix) => {
      wavesurfers.push(WaveSurfer.create({
         container: `#${ws}`,
@@ -34,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         plugins: [ WaveSurfer.markers.create({}) ]
      }))
    });
-
+*/
   // hook up event listeners
   document.getElementById("csv").addEventListener("change", (e) => { 
     const file = e.target.files[0];
