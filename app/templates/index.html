@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+  <head>
+    <title>SSV Align</title>
+    <script> let root = "{{ url_for('static', filename='') }}" </script>
+    <script src="{{ url_for('static', filename='js/align.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/wavesurfer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/wavesurfer.markers.min.js') }}"></script>
+  </head>
+  <body>
+    <div id="waveform1"></div>
+    <div id="waveform2"></div>
+    <label for="#csv">Alignment mappings: </label>
+    <input type="file" id="csv" />
+    <button id="playpause">Play/Pause</button><br/>
+    <button id="swap">Swap</button>
+    <div id="audios"></div>
+  </body>
+</html>
