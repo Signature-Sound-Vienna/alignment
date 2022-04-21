@@ -54,20 +54,23 @@ function setGrids(grids) {
     .join("") + "</ul>";
   Array.from(document.getElementsByClassName("renditionName"))
     .forEach((r, ix) => {
+      console.log("loop: ", r, ix);
       r.addEventListener("click", onClickRenditionName);
       ws.innerHTML += `<div id="wavesurfer${ix}" class="waveform"></div>`;
+      console.log("Exists: ", document.getElementById(`wavesurfer${ix}`))
       let wavesurfer = WaveSurfer.create({
         container: `#wavesurfer${ix}`,
         waveColor: "violet",
         progressColor: "purple",
-        backend: "MediaElement"
+        backend: "MediaElement",
        // plugins: [ WaveSurfer.markers.create({}) ]
       });
       wavesurfer.load(root + "wav/" + audios[ix]);
-      wavesurfer.on('ready', () => {
-        wavesurfer.background = "green";
+      wavesurfer.on('waveform-ready', () => {
+        console.log("Wavesurfer waveform ", ix, "ready!");
       })
       wavesurfers.push(wavesurfer);
+      wavesurfer.once('redraw', () => { debugger; });
 
     });
 }
