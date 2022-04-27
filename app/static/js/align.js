@@ -1,12 +1,11 @@
-const wsContainers = ["waveform1", "waveform2"];
+let audios =["Donau/2001.mp3","Donau/1990.mp3","Donau/1999.mp3","Donau/2011.mp3","Donau/1980.mp3","Donau/1979.mp3","Donau/1995.mp3","Donau/1998.mp3","Donau/2007.mp3","Donau/1991.mp3","Donau/1994.mp3","Donau/2009.mp3","Donau/2005.mp3","Donau/2018.mp3","Donau/2000.mp3","Donau/1996.mp3","Donau/2004.mp3","Donau/2002.mp3","Donau/1997.mp3","Donau/1988.mp3","Donau/Compilation-1980-83.mp3","Donau/1993.mp3","Donau/1987.mp3"]
 let wavesurfers = [];
-let audios = [];
 let alignmentGrids = {};
 let ref;
 let currentAudioIx= 0;
 
 function onClickRenditionName(e) { 
-  document.getElementById(`wavesurfer${currentAudioIx}`).classList.remove("active");
+  document.getElementById(`waveform${currentAudioIx}`).classList.remove("active");
   console.log("Clicked: ", e.target.innerText);
   console.log("ref is: ", ref);
   console.log("Pausing current: ", currentAudioIx);
@@ -30,7 +29,7 @@ function onClickRenditionName(e) {
   currentGrid = alignmentGrids[audios[currentAudioIx]]
   console.log("new audio grid: ", alignmentGrids[audios[currentAudioIx]]);
   console.log("new duration: ", wavesurfers[currentAudioIx].getDuration());
-  document.getElementById(`wavesurfer${currentAudioIx}`).classList.add("active");
+  document.getElementById(`waveform${currentAudioIx}`).classList.add("active");
   // seek to new (corresponding) position 
   let correspondingPosition = currentGrid[closestAlignmentIx];
   let newPosition = correspondingPosition / wavesurfers[currentAudioIx].getDuration();
@@ -41,13 +40,8 @@ function onClickRenditionName(e) {
 }
 
 function setGrids(grids) { 
-  const ws = document.getElementById("waveforms");
-  wavesurfers = [];
-  audios = [];
-  ws.innerHTML = "";
   console.log("setting grids: ", grids);
   alignmentGrids = grids;
-  audios = Object.keys(alignmentGrids).sort();
   document.getElementById("audios").innerHTML = "<ul>" + 
     audios
     .map(k => "<li class='renditionName'>"+k+"</li>")
@@ -56,39 +50,25 @@ function setGrids(grids) {
     .forEach((r, ix) => {
       console.log("loop: ", r, ix);
       r.addEventListener("click", onClickRenditionName);
-      ws.innerHTML += `<div id="wavesurfer${ix}" class="waveform"></div>`;
-      console.log("Exists: ", document.getElementById(`wavesurfer${ix}`))
-      let wavesurfer = WaveSurfer.create({
-        container: `#wavesurfer${ix}`,
-        waveColor: "violet",
-        progressColor: "purple",
-        backend: "MediaElement",
-       // plugins: [ WaveSurfer.markers.create({}) ]
-      });
-      wavesurfer.load(root + "wav/" + audios[ix]);
-      wavesurfer.on('waveform-ready', () => {
-        console.log("Wavesurfer waveform ", ix, "ready!");
-      })
-      wavesurfers.push(wavesurfer);
-      wavesurfer.once('redraw', () => { debugger; });
-
     });
 }
-
 document.addEventListener('DOMContentLoaded', () => {
-  // initialise wavesurfer containers
-  //
- /*
-  wsContainers.forEach( (ws, ix) => {
-     wavesurfers.push(WaveSurfer.create({
-        container: `#${ws}`,
-        waveColor: "violet",
-        progressColor: "purple",
-        plugins: [ WaveSurfer.markers.create({}) ]
-     }))
-   });
-*/
-  // hook up event listeners
+  // generate waveforms
+  audios.forEach((t, ix) => { 
+    let waveform = document.createElement("div");
+    waveform.setAttribute("id", "waveform"+ix);
+    document.getElementById("waveforms").appendChild(waveform);
+    let wavesurfer = WaveSurfer.create({
+      container: `#waveform${ix}`,
+      waveColor: "violet",
+      progressColor: "purple"
+      //backend: "MediaElement"
+     // plugins: [ WaveSurfer.markers.create({}) ]
+    });
+    wavesurfer.load(root + "wav/" + audios[ix]);
+    wavesurfers.push(wavesurfer);
+  })  
+  // hook up file event listener
   document.getElementById("csv").addEventListener("change", (e) => { 
     const file = e.target.files[0];
     if(!file) { 
@@ -109,5 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     reader.readAsText(file);
   });
+  // play/pause button
+  document.getElementById("playpause").addEventListener('click', function(e){
+    if(wavesurfers[currentAudioIx].isPlaying()) 
+      wavesurfers[currentAudioIx].pause();
+    else 
+      wavesurfers[currentAudioIx].play();
+  })
 })
-
