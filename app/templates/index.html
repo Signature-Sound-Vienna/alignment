@@ -8,13 +8,18 @@
     <script src="{{ url_for('static', filename='js/wavesurfer.markers.min.js') }}"></script>
   </head>
   <body>
+    <div class="wrapper">
+    <nav>
+      <label for="#csv">Alignment mappings: </label>
+      <input type="file" id="csv" />
+      <button id="restore">Restore marks</button><br/>
+      <button id="playpause">Play/Pause</button><br/>
+      <button id="mark">Mark</button><br/>
+      <button id="playLastMark">Play from last marker</button><br/>
+      <input type="checkbox" id="transitionType" checked>Transitions jump to last marker</input><br/>
+      <div id="audios"></div>
+    </nav>
     <div id="waveforms"></div>
-    <label for="#csv">Alignment mappings: </label>
-    <input type="file" id="csv" />
-    <button id="playpause">Play/Pause</button><br/>
-    <button id="mark">Mark</button><br/>
-    <button id="playLastMark">Play from last marker</button><br/>
-    <input type="checkbox" id="transitionType" checked>Transitions jump to last marker</input><br/>
-    <div id="audios"></div>
+    </div>
   </body>
 </html>

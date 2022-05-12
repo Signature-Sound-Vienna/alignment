@@ -4,6 +4,13 @@ let markers = [];
 let alignmentGrids = {};
 let ref;
 let currentAudioIx= 0;
+let storage;
+try { 
+  storage = window.localStorage;
+} catch(err) { 
+  console.warn("Unable to access local storage: ", err);
+}
+
 
 function seekToLastMark() { 
   if(markers.length) { 
@@ -21,17 +28,16 @@ function seekToLastMark() {
   }
 }
 
-function getClosestAlignmentIx() { 
-  // return alignment index closest to current playback position
-  const currentTime = wavesurfers[currentAudioIx].getCurrentTime();
+function getClosestAlignmentIx(time = wavesurfers[currentAudioIx].getCurrentTime()) { 
+  // return alignment index closest to supplied time (default: current playback position)
   let currentGrid = alignmentGrids[audios[currentAudioIx]]
   // find the nearest marker to current playback time
-  const lower = currentGrid.filter(t => t <= currentTime);
+  const lower = currentGrid.filter(t => t <= time);
   // ix for closest marker below current time
   let closestAlignmentIx = lower.length;
   // if next marker (closest above current time) is closer, switch to it
   if(closestAlignmentIx < currentGrid.length && 
-     currentTime - currentGrid[closestAlignmentIx] > 
+     time - currentGrid[closestAlignmentIx] > 
       currentGrid[closestAlignmentIx+1])  
           closestAlignmentIx += 1;
   return closestAlignmentIx;
@@ -41,6 +47,7 @@ function getCorrespondingTime(audioIx, alignmentIx) {
   // get time position corresponding to current position of current audio, 
   // in the alternative audio with index audioIx
   let grid = alignmentGrids[audios[audioIx]];
+  console.log("Looking up ", alignmentIx, " in ", grid);
   return grid[alignmentIx];
 }
 
@@ -62,14 +69,13 @@ function onClickRenditionName(e) {
   document.getElementById(`waveform${currentAudioIx}`).classList.add("active");
   // seek to new (corresponding) position 
   transitionToLastMark = document.getElementById(`transitionType`).checked;
+  console.log("transitionToLastMark: ", transitionToLastMark)
+  let correspondingPosition = currentGrid[closestAlignmentIx];
+  let newPosition = correspondingPosition / wavesurfers[currentAudioIx].getDuration();
+  wavesurfers[currentAudioIx].seekTo(newPosition);
   if(transitionToLastMark) { 
     seekToLastMark();
-  } else { 
-    let correspondingPosition = currentGrid[closestAlignmentIx];
-    let newPosition = correspondingPosition / wavesurfers[currentAudioIx].getDuration();
-    console.log("new position: ", correspondingPosition, wavesurfers[currentAudioIx].getDuration(), newPosition);
-    wavesurfers[currentAudioIx].seekTo(newPosition);
-  }
+  }   
   if(wasPlaying)
     wavesurfers[currentAudioIx].play();
 }
@@ -91,6 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
   audios.forEach((t, ix) => { 
     let waveform = document.createElement("div");
     waveform.setAttribute("id", "waveform"+ix);
+    waveform.classList.add("waveform");
+    waveform.dataset.ix = ix;
     document.getElementById("waveforms").appendChild(waveform);
     let wavesurfer = WaveSurfer.create({
       container: `#waveform${ix}`,
@@ -100,6 +108,36 @@ document.addEventListener('DOMContentLoaded', () => {
       plugins: [ WaveSurfer.markers.create({}) ]
     });
     wavesurfer.load(root + "wav/" + audios[ix]);
+    wavesurfer.on("marker-click", (e) => {
+      // index into audio recordings for clicked marker's waveform
+      const clickedAudioIx = e.el.closest(".waveform").dataset.ix;
+      // get corresponding wavesurfer object
+      const clickedSurfer = wavesurfers[clickedAudioIx];
+      // look up alignment grid for this audio recording
+      const clickedGrid = alignmentGrids[audios[clickedAudioIx]];
+      // find the index of the time-value corresponding to the clicked marker in this grid
+      const alignmentIx = clickedGrid.indexOf(e.time);
+      if(alignmentIx > -1) { 
+        // delete the markers corresponding to this alignment index
+        markers.splice(markers.indexOf(alignmentIx), 1);
+        // update markers in storage, if possible
+        if(storage) {
+          storage.setItem("markers", JSON.stringify(markers));
+        }
+        // redraw (remaining) markers for all waveforms
+        wavesurfers.forEach((ws, wsIx) => {
+          ws.clearMarkers();
+          markers.forEach(m => {
+            // get time corresponding to the marker for this audio
+            const t = getCorrespondingTime(wsIx, m);
+            // draw marker at this time
+            ws.addMarker({time: t, color:"green"});
+          })
+        })
+      } else { 
+        console.error("Could not find grid entry for time ", e.time);
+      }
+    });
     wavesurfers.push(wavesurfer);
   })  
   // hook up file event listener
@@ -132,13 +170,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   // mark button
   document.getElementById("mark").addEventListener('click', function(e){
-    let toMark= getClosestAlignmentIx();
+    let toMark = getClosestAlignmentIx();
+    markers.push(toMark);
+    // update markers in storage, if possible
+    if(storage) {
+      storage.setItem("markers", JSON.stringify(markers));
+    }
     wavesurfers.forEach((ws, wsIx) =>  {
-      markers.push(toMark);
       const t = getCorrespondingTime(wsIx, toMark);
       console.log("got corresponding time: ",t) 
       ws.addMarker({time: t, color:"green"})
     })
+  });
+  // restore button
+  document.getElementById("restore").addEventListener('click', function(e){
+    // recover marker positions from local storage if possible
+    if(storage) { 
+      markersString = storage.getItem("markers");
+      if(markersString) {
+        markers = JSON.parse(markersString);
+        wavesurfers.forEach((ws, wsIx) => {
+          // apply any markers that may have been loaded from local storage
+          markers.forEach(m => { 
+            const t = getCorrespondingTime(wsIx, m);
+            wavesurfers[wsIx].addMarker({time: t, color:"green"});
+          })
+        })
+      }
+    }
   });
   // play from last marker button
   document.getElementById("playLastMark").addEventListener('click', () => seekToLastMark());
