@@ -100,7 +100,7 @@ if __name__ == '__main__':
     print(files)
     annotations_map = bulk_align(files, ref_index)
     np.savetxt(args.output, annotations_map, delimiter=",", fmt="%.4f")
-
+    print(files)
 
 
 
