@@ -50,7 +50,7 @@ def bulk_align(files, ref_ix):
 #    ref_onsets = features_df.iloc[ref_ix]['onsets']
     ref_chroma = features[ref_ix]['chroma']
     ref_onsets = features[ref_ix]['onsets']
-    annotations_map = []
+    annotations_map = dict()
     for ix, _ in enumerate(features):
         chroma = features[ix]['chroma']
         onsets = features[ix]['onsets']
@@ -59,9 +59,7 @@ def bulk_align(files, ref_ix):
         wp = make_path_strictly_monotonic(wp)
         # transfer reference annotations
         transferred_anno = scipy.interpolate.interp1d(wp[0] / feature_rate, wp[1] / feature_rate, kind='linear')(ref_decasecond_annotations)
-        print("TRANSFERRED: ")
-        print(transferred_anno)
-        annotations_map.append(transferred_anno)
+        annotations_map[files[ix]] = np.ndarray.tolist(transferred_anno)
     return annotations_map
 
 
@@ -99,7 +97,8 @@ if __name__ == '__main__':
     files = [os.path.join(args.audioDirectory, f) for f in audio_files]
     print(files)
     annotations_map = bulk_align(files, ref_index)
-    np.savetxt(args.output, annotations_map, delimiter=",", fmt="%.4f")
+    with open(args.output, 'w',encoding="utf-8") as out:
+        json.dump(annotations_map, out, indent = 2)
     print(files)
 
 
