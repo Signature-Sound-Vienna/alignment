@@ -23,6 +23,8 @@ if __name__ == '__main__':
   else: 
     files = [f for f in p.glob("**/*"+args.term+"*")]
 
+  files = list(filter(lambda f: f.suffix.endswith('.wav') or f.suffix.endswith('.mp3'), files)) # audio files only
+
   for f in files:
     parent = f.parent.name
     if parent.startswith("CD") or parent.startswith("DVD"):
