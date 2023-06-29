@@ -1,5 +1,6 @@
 import json
 import argparse, os, sys
+from pprint import pprint
 import numpy as np
 import pandas as pd
 import librosa.display
@@ -97,7 +98,7 @@ def score_align(audio, midi):
     # convert MIDI to libfmp format
     
     # load audio
-    audio, _ = librosa.load('audio', Fs)
+    audio, _ = librosa.load(audio, Fs)
 
     # create annotation dataframe for score
     midi_data = pretty_midi.PrettyMIDI(midi)
@@ -106,16 +107,15 @@ def score_align(audio, midi):
     for instrument in midi_data.instruments:
         for note in instrument.notes:
             start = note.start
-            end = note.end
             duration = note.end - note.start
             pitch = note.pitch
             velocity = note.velocity
-            midi_list.append([start, end, duration, pitch, velocity, instrument.name])
+            midi_list.append([start, duration, pitch, velocity, instrument.name])
             
     midi_list = sorted(midi_list, key=lambda x: (x[0], x[2]))
 
-    score_annotation = pd.DataFrame(midi_list, columns=['Start', 'End', 'Duration', 'Pitch', 'Velocity', 'Instrument'])
-    score_annotation = score_annotation[score_annotation['Pitch'] != 0] # Filter out percussion. TODO is there a better way that doesn't lose this information?
+    score_annotation = pd.DataFrame(midi_list, columns=['start', 'duration', 'pitch', 'velocity', 'instrument'])
+    score_annotation = score_annotation[score_annotation['pitch'] != 0] # Filter out percussion. TODO is there a better way that doesn't lose this information?
     
     # Estimate tuning
     tuning_offset = estimate_tuning(audio, Fs)
@@ -123,7 +123,7 @@ def score_align(audio, midi):
     # get audio features
     chroma_audio, onsets_audio = get_features_from_audio(audio, tuning_offset, Fs, feature_rate)
                                         
-
+    pprint(score_annotation)
     # get annotation features
     chroma_anno, onsets_anno = get_features_from_annotation(score_annotation, feature_rate)
 
@@ -144,12 +144,12 @@ def score_align(audio, midi):
                         input_feature_rate=feature_rate, 
                         step_weights=step_weights, 
                         threshold_rec=threshold_rec, 
-                        verbose=True)
+                        verbose=False)
 
     # make warping path strictly monotonic (better for transferring annotations accordign to synctoolbox)
     wp = make_path_strictly_monotonic(wp)
 
-    score_annotation["warped-end"] = score_annotation["warped-start"] + score_annotation["warped-duration"]
+    score_annotation["warped-end"] = score_annotation["start"] + score_annotation["duration"]
     score_annotation[['warped-start', 'warped-end']] = scipy.interpolate.interp1d(wp[1] / feature_rate, 
                             wp[0] / feature_rate, kind='linear', fill_value="extrapolate")(score_annotation[['start', 'end']])
     score_annotation["warped-duration"] = score_annotation["warped-end"] - score_annotation["warped-start"]
@@ -182,9 +182,6 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--referenceMidi', help="Filename of reference MIDI in directory.", required=True)
     parser.add_argument('-o', '--output', help="Filename for output file", required=True)
     args = parser.parse_args()
-
-    pprint(score_align(args.referenceAudio, args.referenceMidi))
-    exit;
 
     audio_files = [f for f in os.listdir(args.audioDirectory) if f.endswith('.wav') or f.endswith('.mp3')]
     ref_index = 0
