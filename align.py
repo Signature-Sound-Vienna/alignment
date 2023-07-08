@@ -30,7 +30,8 @@ def bulk_align(files, ref_ix):
     #features_df = pd.DataFrame({"audio_ix":{}, "chroma":{}, "onsets":{}})
     features = []
     # generate reference annotations
-    ref_decasecond_annotations = np.arange(0, librosa.get_duration(audios[ref_ix]), 0.1)
+   # ref_decasecond_annotations = np.arange(0, librosa.get_duration(audios[ref_ix]), 0.1)
+    ref_decasecond_annotations = np.arange(0, librosa.get_duration(audios[ref_ix]), 0.02)
     import libfmp.c2
 
     tuning_offset1 = estimate_tuning(audios[0], Fs)

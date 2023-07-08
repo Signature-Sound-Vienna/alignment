@@ -153,8 +153,17 @@ def score_align(audio, midi):
     score_annotation[['warped-start', 'warped-end']] = scipy.interpolate.interp1d(wp[1] / feature_rate, 
                             wp[0] / feature_rate, kind='linear', fill_value="extrapolate")(score_annotation[['start', 'end']])
     score_annotation["warped-duration"] = score_annotation["warped-end"] - score_annotation["warped-start"]
-    return score_annotation
 
+    # deduplicate
+    onsets = score_annotation[["start", "warped-start"]].drop_duplicates()
+    offsets = score_annotation[["end", "warped-end"]].drop_duplicates()
+
+    return {
+        "score_onset": onsets["start"].tolist(),
+        "ref_onset": onsets["warped-start"].tolist(),
+        "score_offset": offsets["end"].tolist(),
+        "ref_offset": offsets["warped-end"].tolist()
+    }
 
 def alignment_ix_to_score_time(alignment_grids, ref_name, ix):
     return alignment_grids[ref_name][ix] / ((60 / midiTempo) * 1000)
@@ -182,7 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--referenceMidi', help="Filename of reference MIDI in directory.", required=True)
     parser.add_argument('-o', '--output', help="Filename for output file", required=True)
     args = parser.parse_args()
-
+   
     audio_files = [f for f in os.listdir(args.audioDirectory) if f.endswith('.wav') or f.endswith('.mp3')]
     ref_index = 0
     if len(audio_files) < 2:
@@ -197,10 +206,10 @@ if __name__ == '__main__':
     annotations_map = dict()
     annotations_map["body"] = dict()
     annotations_map["body"]["audio"] = bulk_align(files, ref_index)
-    annotations_map["body"]["score"] = score_align(audio_files[ref_index], args.referenceMidi)
+    annotations_map["body"]["score"] = score_align(os.path.join(args.audioDirectory, audio_files[ref_index]), args.referenceMidi)
     annotations_map["header"] = dict()
     annotations_map["header"]["ref"] = audio_files[ref_index]
-    annotations_map["header"]["tempi"] = calculate_tempi(annotations_map["body"], files[ref_index])
+    annotations_map["header"]["tempi"] = calculate_tempi(annotations_map["body"]["audio"], files[ref_index])
     with open(args.output, 'w',encoding="utf-8") as out:
         json.dump(annotations_map, out, indent = 2)
     print(files)
