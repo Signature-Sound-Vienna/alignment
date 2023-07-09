@@ -1,7 +1,7 @@
 {
   "body": {
     "audio": {
-      "../listenTool/app/static/wav/Pizzicato/VPO-mixed (Die Highlights aus Wien).wav": [
+      "Pizzicato/VPO-mixed (Die Highlights aus Wien).wav": [
         0.0,
         0.02,
         0.04,
@@ -8189,7 +8189,7 @@
         175.23809523809524,
         175.23904761904762
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-mixed (Golden Classics).wav": [
+      "Pizzicato/VPO-mixed (Golden Classics).wav": [
         0.0,
         0.02,
         0.04,
@@ -16377,7 +16377,7 @@
         175.23809523809524,
         175.23904761904762
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1951-1954.wav": [
+      "Pizzicato/VPO-1951-1954.wav": [
         0.0,
         0.02,
         0.04,
@@ -24565,7 +24565,7 @@
         203.96,
         203.98000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1979.wav": [
+      "Pizzicato/VPO-1979.wav": [
         0.0,
         0.002857142857142857,
         0.005714285714285714,
@@ -32753,7 +32753,7 @@
         187.7,
         187.72000000000102
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1980-1983.wav": [
+      "Pizzicato/VPO-1980-1983.wav": [
         0.0,
         0.02,
         0.04,
@@ -40941,7 +40941,7 @@
         161.9,
         161.9200000000001
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1993.wav": [
+      "Pizzicato/VPO-1993.wav": [
         0.0,
         0.02,
         0.04,
@@ -49129,7 +49129,7 @@
         173.3,
         173.32000000000005
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-2005.wav": [
+      "Pizzicato/VPO-2005.wav": [
         0.0,
         0.02,
         0.04,
@@ -57317,7 +57317,7 @@
         175.58,
         175.60000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1987.wav": [
+      "Pizzicato/VPO-1987.wav": [
         0.0,
         0.02,
         0.04,
@@ -65505,7 +65505,7 @@
         176.19971830985915,
         176.20000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1941 (& unbekannt).wav": [
+      "Pizzicato/VPO-1941 (& unbekannt).wav": [
         0.0,
         0.02,
         0.04,
@@ -73693,7 +73693,7 @@
         178.98,
         179.00000000000003
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1989.wav": [
+      "Pizzicato/VPO-1989.wav": [
         0.0,
         0.02,
         0.04,
@@ -81881,7 +81881,7 @@
         202.572,
         202.57600000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-2012.wav": [
+      "Pizzicato/VPO-2012.wav": [
         0.0,
         0.02,
         0.04,
@@ -90069,7 +90069,7 @@
         163.68,
         163.70000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/VPO-1974 (DVD2).wav": [
+      "Pizzicato/VPO-1974 (DVD2).wav": [
         0.0,
         0.02,
         0.04,
@@ -98257,7 +98257,7 @@
         213.42,
         213.44000000000003
       ],
-      "../listenTool/app/static/wav/Pizzicato/Berliner Philharmoniker, Herbert von Karajan (1971).wav": [
+      "Pizzicato/Berliner Philharmoniker, Herbert von Karajan (1971).wav": [
         0.0,
         0.16,
         0.18,
@@ -106445,7 +106445,7 @@
         158.96,
         158.98000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/Das Grosse Neujahrskonzert, mixed.wav": [
+      "Pizzicato/Das Grosse Neujahrskonzert, mixed.wav": [
         0.0,
         0.02,
         0.04,
@@ -114633,7 +114633,7 @@
         165.92,
         165.94000000000003
       ],
-      "../listenTool/app/static/wav/Pizzicato/Estonian National Symphony Orchestra, Neeme J\u00e4rvi (2017).wav": [
+      "Pizzicato/Estonian National Symphony Orchestra, Neeme J\u00e4rvi (2017).wav": [
         0.0,
         0.02,
         0.04,
@@ -122821,7 +122821,7 @@
         156.52,
         156.54000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/mixed, Nikolaus Harnoncourt (Johann Strauss II).wav": [
+      "Pizzicato/mixed, Nikolaus Harnoncourt (Johann Strauss II).wav": [
         0.0,
         0.02,
         0.04,
@@ -131009,7 +131009,7 @@
         179.6,
         179.62000000000003
       ],
-      "../listenTool/app/static/wav/Pizzicato/Orchester der Wiener Volksoper (Strauss. New Year\u00b4s Concerto).wav": [
+      "Pizzicato/Orchester der Wiener Volksoper (Strauss. New Year\u00b4s Concerto).wav": [
         0.0,
         0.02,
         0.04,
@@ -139197,7 +139197,7 @@
         288.08,
         288.10000000000423
       ],
-      "../listenTool/app/static/wav/Pizzicato/Wiener Volksopernorchester, Franz Bauer-Theussl (1985).wav": [
+      "Pizzicato/Wiener Volksopernorchester, Franz Bauer-Theussl (1985).wav": [
         0.0,
         0.02,
         0.04,
@@ -147385,7 +147385,7 @@
         172.96,
         172.98000000000002
       ],
-      "../listenTool/app/static/wav/Pizzicato/Orchester der Wiener Volksoper, Peter Falk (1988), Vol. 2.wav": [
+      "Pizzicato/Orchester der Wiener Volksoper, Peter Falk (1988), Vol. 2.wav": [
         0.0,
         0.02,
         0.04,
@@ -157278,7 +157278,7 @@
     }
   },
   "header": {
-    "ref": "../listenTool/app/static/wav/Pizzicato/VPO-2012.wav",
+    "ref": "Pizzicato/VPO-2012.wav",
     "meiUri": "https://gist.githubusercontent.com/musicog/57ccac74ec9b4092116d8d7cc22b0ca9/raw/96729b465a9bd1586220d5e47794f1129be9bf1c/Pizzicato%2520Polka%2520Version%2520AB.Expansion.mei"
   }
 }
