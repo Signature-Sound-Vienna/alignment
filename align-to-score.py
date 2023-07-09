@@ -189,6 +189,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--audioDirectory', help="Directory containing recordings to be matched", required=True)
     parser.add_argument('-r', '--referenceAudio', help="Filename of reference recording in directory. If omited, I'll use the first file I find", required=False)
     parser.add_argument('-m', '--referenceMidi', help="Filename of reference MIDI in directory.", required=True)
+    parser.add_argument('-u', '--meiUri', help="URI of MEI file used to generate reference MIDI.", required=True)
     parser.add_argument('-o', '--output', help="Filename for output file", required=True)
     args = parser.parse_args()
    
@@ -208,8 +209,9 @@ if __name__ == '__main__':
     annotations_map["body"]["audio"] = bulk_align(files, ref_index)
     annotations_map["body"]["score"] = score_align(os.path.join(args.audioDirectory, audio_files[ref_index]), args.referenceMidi)
     annotations_map["header"] = dict()
-    annotations_map["header"]["ref"] = audio_files[ref_index]
-    annotations_map["header"]["tempi"] = calculate_tempi(annotations_map["body"]["audio"], files[ref_index])
+    annotations_map["header"]["ref"] = os.path.join(args.audioDirectory, audio_files[ref_index])
+    annotations_map["header"]["meiUri"] = args.meiUri
+    #annotations_map["header"]["tempi"] = calculate_tempi(annotations_map["body"]["audio"], files[ref_index])
     with open(args.output, 'w',encoding="utf-8") as out:
         json.dump(annotations_map, out, indent = 2)
     print(files)
